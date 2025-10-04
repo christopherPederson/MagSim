@@ -1,8 +1,11 @@
 import sys
 import math
 
-from PySide6.QtGui import QImage, QPainter, QPen, QColor, QPixmap
-from PySide6.QtCore import QSize, Qt, QRectF
+from Coil import Coil
+from TourqueSimulation import TorqueSimulation
+from TrippleAxisSimulation import TripleAxisSimulation
+
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -19,88 +22,7 @@ from PySide6.QtWidgets import (
 app = QApplication(sys.argv)
 
 # -- Constants Definitions -- #
-EARTH_FIELD_STRENGTH = 45e-6  # Tesla
-
-class Coil:
-    def __init__(self):
-        self.length = None             # millimeters
-        self.width = None              # millimeters
-        self.num_loops = None
-        self.min_spacing = None        # thousands of an inch
-        self.min_current = None        # Amps
-        self.max_current = None        # Amps
-        self.copper_thickness = None   # Oz per square foot
-        self.trace_width = None        # thousands of an inch
-        self.edge_clearance = None     # millimeters
-
-    def calc_magnetic_dipole_moment(self, current):
-        return self.num_loops * current * (self.length * 1e-3) * (self.width * 1e-3)
-    
-    def render_coil(self):
-
-        # define image size with porportional scaling based off desired 600px reference image width
-        ref_img_x_size = 300
-        # scaling factor for px/mm
-        px_scaling = math.floor(ref_img_x_size / self.width)
-        img_x_size = px_scaling * self.width
-        img_y_size = px_scaling * self.length
-
-        # instanciate QImage object
-        img = QImage(img_x_size, img_y_size, QImage.Format_ARGB32)
-        img.fill(Qt.white)
-
-        img_length = (self.length - self.edge_clearance) * px_scaling
-        img_width = (self.width - self.edge_clearance) * px_scaling
-
-        pen_width = max(1, math.floor((self.trace_width / 39.3701) * px_scaling)) # convert thousands of an inch to mm then to px, minimum 1px pen width
-
-        painter = QPainter(img)
-        painter.setRenderHint(QPainter.Antialiasing)
-
-        painter.translate(img_x_size / 2, img_y_size / 2)  # Move origin to center of image
-
-        pen = QPen(QColor(0, 0, 0))
-        pen.setWidth(pen_width)
-        pen.setCapStyle(Qt.FlatCap)
-        pen.setJoinStyle(Qt.RoundJoin)
-        painter.setPen(pen)
-
-        pitch_px = (self.min_spacing / 39.3701) * px_scaling
-        inset0   = pen_width / 2.0  # so the stroke isn’t clipped
-
-        for k in range(int(self.num_loops)):
-            x = inset0 + k * pitch_px
-            y = inset0 + k * pitch_px
-            w = img_length - 2*x
-            h = img_width - 2*y
-            if w <= 0 or h <= 0:
-                break
-            # Center the rectangle at (0, 0)
-            painter.drawRect(QRectF(-w/2, -h/2, w, h))
-
-        painter.end()
-        return QPixmap.fromImage(img)
-
-
-
-class TorqueSimulation:
-    def __init__(self, coil):
-        self.coil = coil                # Coil object
-
-    def calc_torque(self, current, angle):
-        return self.coil.calc_magnetic_dipole_moment(current) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle))
-    
-class TripleAxisSimulation:
-    def __init__(self, coil_x, coil_y, coil_z):
-        self.coil_x = coil_x              # Coil object
-        self.coil_y = coil_y              # Coil object
-        self.coil_z = coil_z              # Coil object
-
-    def calc_torque(self, current_x, current_y, current_z, angle_x, angle_y, angle_z):
-        torque_x = self.coil_x.calc_magnetic_dipole_moment(current_x) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_x))
-        torque_y = self.coil_y.calc_magnetic_dipole_moment(current_y) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_y))
-        torque_z = self.coil_z.calc_magnetic_dipole_moment(current_z) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_z))
-        return (torque_x, torque_y, torque_z)
+EARTH_FIELD_STRENGTH = 45e-6  # Tesla 
 
 class MainWindow(QMainWindow):
     def __init__(self):                         # Constructor on the MainWindow class
@@ -129,45 +51,51 @@ class MainWindow(QMainWindow):
 
         self.gen_coil_button.clicked.connect(self.update_coil_image)
 
-        # Coil Length row
-        length_row = QHBoxLayout()
-        length_label = QLabel("Coil Length (mm):")
+        # Parameter inputs: two columns (labels | line edits)
+        params_layout = QHBoxLayout()
+        label_column = QVBoxLayout()
+        line_column = QVBoxLayout()
+        params_layout.addLayout(label_column)
+        params_layout.addLayout(line_column)
+        params_layout.setSpacing(12)
+        label_column.setSpacing(6)
+        line_column.setSpacing(6)
+
+        # helper to add a labelled field with matching widths
+        def add_param(label_text, widget, fixed_width=220):
+            lbl = QLabel(label_text)
+            lbl.setFixedWidth(fixed_width)
+            widget.setFixedWidth(fixed_width)
+            label_column.addWidget(lbl)
+            line_column.addWidget(widget)
+            return lbl, widget
+
+        # create fields and add them to the two columns
         self.coil_length = QLineEdit()
-        length_row.addWidget(length_label)
-        length_row.addWidget(self.coil_length)
-        layout.addLayout(length_row)
+        add_param("Coil Length (mm):", self.coil_length)
 
-        # Coil Width row
-        width_row = QHBoxLayout()
-        width_label = QLabel("Coil Width (mm):")
         self.coil_width = QLineEdit()
-        width_row.addWidget(width_label)
-        width_row.addWidget(self.coil_width)
-        layout.addLayout(width_row)
+        add_param("Coil Width (mm):", self.coil_width)
 
-        # Current Input row
-        current_row = QHBoxLayout()
-        current_label = QLabel("Coil current (A):")
         self.coil_current = QLineEdit()
-        current_row.addWidget(current_label)
-        current_row.addWidget(self.coil_current)
-        layout.addLayout(current_row)
+        add_param("Coil current (A):", self.coil_current)
 
-        # Vector angle row
-        angle_row = QHBoxLayout()
-        angle_label = QLabel("Vector Angle (°):")
         self.vector_angle = QLineEdit()
-        angle_row.addWidget(angle_label)
-        angle_row.addWidget(self.vector_angle)
-        layout.addLayout(angle_row)
+        add_param("Vector Angle (°):", self.vector_angle)
 
-        # Nunmber of Loops row
-        loops_row = QHBoxLayout()
-        loops_label = QLabel("Number of Loops:")
         self.num_loops = QLineEdit()
-        loops_row.addWidget(loops_label)
-        loops_row.addWidget(self.num_loops)
-        layout.addLayout(loops_row)
+        add_param("Number of Loops:", self.num_loops)
+
+        self.min_spacing = QLineEdit()
+        add_param("Minimum Trace Clearance (thousands of an inch):", self.min_spacing)
+
+        self.trace_width = QLineEdit()
+        add_param("Trace Width (thousands of an inch):", self.trace_width)
+
+        self.edge_clearance = QLineEdit()
+        add_param("Edge Clearance (mm):", self.edge_clearance)
+
+        layout.addLayout(params_layout)
 
         # Calculate Button
         self.button = QPushButton("Calculate Instantaneous Torque")
@@ -207,15 +135,15 @@ class MainWindow(QMainWindow):
 
     def update_coil_image(self):
         # Get user inputs
-        self.coil.length    = float(self.coil_length.text())
-        self.coil.width     = float(self.coil_width.text())
-        self.coil.num_loops = float(self.num_loops.text())
-        self.coil.min_spacing = 50.0          # default 10 thousands of an inch
-        self.coil.trace_width = 10.0           # default 10 thousands of an inch
-        self.coil.edge_clearance = 2.0         # default 2 mm
+        self.coil.length            = float(self.coil_length.text())
+        self.coil.width             = float(self.coil_width.text())
+        self.coil.num_loops         = float(self.num_loops.text())
+        self.coil.min_spacing       = float(self.min_spacing.text()) + max(1,float(self.trace_width.text())) # Trace clearance muyst consider trace width
+        self.coil.trace_width       = float(self.trace_width.text())
+        self.coil.edge_clearance    = float(self.edge_clearance.text())
 
         # Render coil image
-        pixmap = self.coil.render_coil()
+        pixmap = self.coil.render_coil_circular()
         self.preview.setPixmap(pixmap.scaled(self.preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
 
