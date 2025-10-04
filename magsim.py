@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QSizePolicy,
+    QComboBox,
     QWidget
 )
 
@@ -30,6 +31,7 @@ class MainWindow(QMainWindow):
 
         # Define coil for simulation
         self.coil = Coil()
+        self.coil.coil_type = 'circular'  # default to circular coil
         self.inst_tourque = 0.0
 
         # Setup the main window
@@ -37,13 +39,13 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(QWidget())        # sets the central widget of the window to a basic QWidget instance
 
         # -- Define GUI Layout -- #
-        layout = QVBoxLayout()                  # Create a vertical box layout
+        layout = QVBoxLayout()
 
         # Coil Image Display
         self.preview = QLabel()
         self.preview.setFixedSize(350, 350)
         self.preview.setAlignment(Qt.AlignCenter)
-        layout.addWidget(self.preview)
+        layout.addWidget(self.preview, alignment=Qt.AlignHCenter)
 
         # Generate Coil Image Button
         self.gen_coil_button = QPushButton("Generate Coil Image")
@@ -87,10 +89,10 @@ class MainWindow(QMainWindow):
         add_param("Number of Loops:", self.num_loops)
 
         self.min_spacing = QLineEdit()
-        add_param("Minimum Trace Clearance (thousands of an inch):", self.min_spacing)
+        add_param("Trace Clearance (mil):", self.min_spacing)
 
         self.trace_width = QLineEdit()
-        add_param("Trace Width (thousands of an inch):", self.trace_width)
+        add_param("Trace Width (mil):", self.trace_width)
 
         self.edge_clearance = QLineEdit()
         add_param("Edge Clearance (mm):", self.edge_clearance)
@@ -103,9 +105,8 @@ class MainWindow(QMainWindow):
 
         # Instantaneous Torque Display
         inst_torque_row = QHBoxLayout()
-        inst_torque_label = QLabel(f"Instantaneous Torque (Nm):")
-        self.inst_torque_display = QLineEdit()
-        self.inst_torque_display.setReadOnly(True)
+        inst_torque_label = QLabel("Instantaneous Torque (Nm):")
+        self.inst_torque_display = QLabel(f"{self.inst_tourque:.8g}")
         inst_torque_row.addWidget(inst_torque_label)
         inst_torque_row.addWidget(self.inst_torque_display)
         layout.addLayout(inst_torque_row)
@@ -144,7 +145,11 @@ class MainWindow(QMainWindow):
 
         # Render coil image
         pixmap = self.coil.render_coil_circular()
-        self.preview.setPixmap(pixmap.scaled(self.preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        if self.coil.overlapped:
+            self.preview.setText("Error: Coil traces overlap due to geometry.\nPlease adjust parameters.")
+        else:
+            self.preview.setPixmap(pixmap.scaled(self.preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
 
 window = MainWindow()

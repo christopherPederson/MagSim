@@ -10,4 +10,3 @@ class TorqueSimulation():
 
     def calc_torque(self, current, angle):
         return self.coil.calc_magnetic_dipole_moment(current) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle))
-   
