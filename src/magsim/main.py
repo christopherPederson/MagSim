@@ -3,6 +3,7 @@ import sys
 from .Coil import Coil
 from .TourqueSimulation import TorqueSimulation
 from .TrippleAxisSimulation import TripleAxisSimulation
+from .ExportCoil import CoilFile
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -99,6 +100,12 @@ class MainWindow(QMainWindow):
         layout.addLayout(params_layout)
 
         # Calculate Button
+        self.export_button = QPushButton("Export to Altium Designer DXF")
+        layout.addWidget(self.export_button)
+
+        self.export_button.clicked.connect(self.export_dxf)
+
+        # Calculate Button
         self.button = QPushButton("Calculate Instantaneous Torque")
         layout.addWidget(self.button)
 
@@ -120,11 +127,15 @@ class MainWindow(QMainWindow):
 
     def calculate_torque(self):
         # Get user inputs
-        self.coil.length    = float(self.coil_length.text())
-        self.coil.width     = float(self.coil_width.text())
-        self.coil.num_loops = float(self.num_loops.text())
-        current             = float(self.coil_current.text())
-        angle               = float(self.vector_angle.text())
+        self.coil.length            = float(self.coil_length.text())
+        self.coil.width             = float(self.coil_width.text())
+        self.coil.num_loops         = int(self.num_loops.text())
+        self.coil.min_spacing       = float(self.min_spacing.text()) + max(1,float(self.trace_width.text())) # Trace clearance muyst consider trace width
+        self.coil.trace_width       = float(self.trace_width.text())
+        self.coil.edge_clearance    = float(self.edge_clearance.text())
+
+        current                     = float(self.coil_current.text())
+        angle                       = float(self.vector_angle.text())
 
         # Perform torque calculation
         simulation          = TorqueSimulation(self.coil)
@@ -137,8 +148,8 @@ class MainWindow(QMainWindow):
         # Get user inputs
         self.coil.length            = float(self.coil_length.text())
         self.coil.width             = float(self.coil_width.text())
-        self.coil.num_loops         = float(self.num_loops.text())
-        self.coil.min_spacing       = float(self.min_spacing.text()) + max(1,float(self.trace_width.text())) # Trace clearance muyst consider trace width
+        self.coil.num_loops         = int(self.num_loops.text())
+        self.coil.min_spacing       = float(self.min_spacing.text())
         self.coil.trace_width       = float(self.trace_width.text())
         self.coil.edge_clearance    = float(self.edge_clearance.text())
 
@@ -149,6 +160,10 @@ class MainWindow(QMainWindow):
             self.preview.setText("Error: Coil traces overlap due to geometry.\nPlease adjust parameters.")
         else:
             self.preview.setPixmap(pixmap.scaled(self.preview.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+    
+    def export_dxf(self):
+        exporter = CoilFile(self.coil, parent=self)
+        exporter.on_export_dxf()
 
 
 window = MainWindow()

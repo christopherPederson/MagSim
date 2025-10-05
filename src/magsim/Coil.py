@@ -68,8 +68,8 @@ class Coil:
         img.fill(Qt.white)
 
         # compute drawable coil dimensions (px)
-        img_length = (self.length - self.edge_clearance) * px_scaling
-        img_width = (self.width - self.edge_clearance) * px_scaling
+        img_length = (self.length - ( 2* self.edge_clearance)) * px_scaling
+        img_width = (self.width - ( 2* self.edge_clearance)) * px_scaling
 
         pen_width = max(1, math.floor((self.trace_width / 39.3701) * px_scaling)) # convert thousands of an inch to mm then to px, minimum 1px pen width
 
