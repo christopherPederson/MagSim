@@ -15,7 +15,7 @@ I am currently building a small-scale concept satellite called PicoSat, which is
 While it does not actually conform to the standard measurements of a cubesat, I have carried over many of the same design concepts; therefore, I have dubbed it a 1/4U cubesat.
 
 <p align="center">
-  <img src="img/SAT_MAIN.webp" alt="PicoSat" width="90%"/>
+  <img src="img/SAT_MAIN.jpg" alt="PicoSat" width="90%"/>
 </p>
 
 This tool will ultimately be used to support that project.
