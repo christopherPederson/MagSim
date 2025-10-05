@@ -25,6 +25,8 @@ class Coil:
             raise ValueError("Coil type must be 'circular' or 'rectangular'")
         
         elif (self.coil_type == 'rectangular'):
+
+            # this needs to change as it is not correct for rectangular coils
             return self.num_loops * current * (self.length * 1e-3) * (self.width * 1e-3)
         
         elif (self.coil_type == 'circular'):

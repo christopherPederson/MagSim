@@ -1,8 +1,8 @@
 import math
-from PySide6.QtCore import Qt
+from .FieldLib import get_B_field
 
 # -- Constants Definitions -- #
-EARTH_FIELD_STRENGTH = 45e-6  # Tesla 
+EARTH_FIELD_STRENGTH = get_B_field()
 
 class TripleAxisSimulation():
     def __init__(self, coil_x, coil_y, coil_z):
@@ -14,4 +14,5 @@ class TripleAxisSimulation():
         torque_x = self.coil_x.calc_magnetic_dipole_moment(current_x) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_x))
         torque_y = self.coil_y.calc_magnetic_dipole_moment(current_y) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_y))
         torque_z = self.coil_z.calc_magnetic_dipole_moment(current_z) * EARTH_FIELD_STRENGTH * math.sin(math.radians(angle_z))
+        
         return (torque_x, torque_y, torque_z)

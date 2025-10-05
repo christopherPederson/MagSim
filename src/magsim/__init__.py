@@ -1,0 +1,1 @@
+# src/magsim/__init__.py

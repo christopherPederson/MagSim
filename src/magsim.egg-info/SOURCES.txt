@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/magsim/Coil.py
+src/magsim/FieldLib.py
+src/magsim/TourqueSimulation.py
+src/magsim/TrippleAxisSimulation.py
+src/magsim/__init__.py
+src/magsim/__main__.py
+src/magsim/main.py
+src/magsim.egg-info/PKG-INFO
+src/magsim.egg-info/SOURCES.txt
+src/magsim.egg-info/dependency_links.txt
+src/magsim.egg-info/entry_points.txt
+src/magsim.egg-info/requires.txt
+src/magsim.egg-info/top_level.txt

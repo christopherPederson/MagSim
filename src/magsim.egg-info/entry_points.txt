@@ -1,0 +1,2 @@
+[console_scripts]
+magsim = magsim.main:main

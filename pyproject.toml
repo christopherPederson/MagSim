@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "magsim"
+version = "0.1.0"
+description = "Magnetorquer simulator GUI"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["PySide6>=6.6", "geomag"]
+
+
+[project.scripts]
+magsim = "magsim.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

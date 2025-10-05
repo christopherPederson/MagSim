@@ -1,9 +1,8 @@
 import sys
-import math
 
-from Coil import Coil
-from TourqueSimulation import TorqueSimulation
-from TrippleAxisSimulation import TripleAxisSimulation
+from .Coil import Coil
+from .TourqueSimulation import TorqueSimulation
+from .TrippleAxisSimulation import TripleAxisSimulation
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (

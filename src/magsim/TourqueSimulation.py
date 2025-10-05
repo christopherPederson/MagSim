@@ -1,8 +1,8 @@
 import math
-from PySide6.QtCore import Qt
+from .FieldLib import get_B_field
 
 # -- Constants Definitions -- #
-EARTH_FIELD_STRENGTH = 45e-6  # Tesla 
+EARTH_FIELD_STRENGTH = get_B_field()
 
 class TorqueSimulation():
     def __init__(self, coil):
