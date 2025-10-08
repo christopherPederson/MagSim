@@ -7,29 +7,28 @@ EARTH_FIELD_STRENGTH = 45e-6  # Tesla
 
 class Coil:
     def __init__(self):
-        self.length             = None # millimeters
-        self.width              = None # millimeters
-        self.num_loops          = None
-        self.min_spacing        = None # thousands of an inch
-        self.min_current        = None # Amps
-        self.max_current        = None # Amps
-        self.copper_thickness   = None # Oz per square foot
-        self.trace_width        = None # thousands of an inch
-        self.edge_clearance     = None # millimeters
-        self.coil_type          = None # 'circular' or 'rectangular'
-        self.overlapped         = False # True if coil traces overlap due to geometry
+        self.length                 = None # millimeters
+        self.width                  = None # millimeters
+        self.num_loops              = None
+        self.min_spacing            = None # thousands of an inch
+        self.copper_thickness       = None # Oz per square foot
+        self.trace_width_min_fixed  = None # thousands of an inch
+        self.trace_width_max        = None
+        self.edge_clearance         = None # millimeters
+        self.coil_shape             = None # 'circular' or 'rectangular'
+        self.overlapped             = False # True if coil traces overlap due to geometry
 
     def calc_magnetic_dipole_moment(self, current):
 
-        if (self.coil_type != 'circular' and self.coil_type != 'rectangular'):
+        if (self.coil_shape != 'circular' and self.coil_shape != 'rectangular'):
             raise ValueError("Coil type must be 'circular' or 'rectangular'")
         
-        elif (self.coil_type == 'rectangular'):
+        elif (self.coil_shape == 'rectangular'):
 
             # this needs to change as it is not correct for rectangular coils
             return self.num_loops * current * (self.length * 1e-3) * (self.width * 1e-3)
         
-        elif (self.coil_type == 'circular'):
+        elif (self.coil_shape == 'circular'):
 
             # Calculating area of archimedean spiral
             #

@@ -134,12 +134,13 @@ python -m magsim
 
 For a 50 mm × 50 mm circular planar coil with 30 loops, 0.1 A current, and 45 µT Earth field:
 
-[
-\mu = 30 \times 0.1 \times \pi (0.025^2 - 0.005^2) = 0.0056 , \text{A·m²}
-]
-[
-\tau = \mu , B_\text{E} , \sin(90°) = 0.0056 \times 45\times10^{-6} = 2.52\times10^{-7} , \text{N·m}
-]
+$$
+\mu = 30 \times 0.1 \times \pi (0.025^2 - 0.005^2) = 0.0056\ \text{A·m}^2
+$$
+
+$$
+\tau = \mu \, B_\text{E} \, \sin(90^\circ) = 0.0056 \times 45\times10^{-6} = 2.52\times10^{-7}\ \text{N·m}
+$$
 
 <p align="center">
   <img src="img/MagSimWindow.png" alt="PicoSat" width="200px"/>
