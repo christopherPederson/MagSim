@@ -27,14 +27,38 @@ class PCBWindow(QWidget):
         # update the coil display based on the selected layer
         index = self.current_layer.currentIndex()
         if self.layer_array[index] == Coil:
-            self.layer_array[index].update_display(display)
+            self.update_coil_image()
+
+    def update_coil_image(self):
+        # Get user inputs
+        coil_obj = self.layer_array[self.current_layer.currentIndex()]
+
+        coil_obj.length                = float(self.coil_length.text())
+        coil_obj.width                 = float(self.coil_width.text())  
+        coil_obj.num_loops             = int(self.num_loops.text())
+        coil_obj.min_spacing           = float(self.min_spacing.text())
+        coil_obj.trace_width_min      = float(self.trace_width_min.text())
+        coil_obj.trace_width_max      = float(self.trace_width_max.text())
+        coil_obj.edge_clearance        = float(self.edge_clearance.text())
+        coil_obj.coil_shape            = self.coil_shape.currentText().lower()
+
+        # Render coil image
+        pixmap = coil_obj.render_coil_circular()
+
+        if coil_obj.overlapped:
+            self.coil_display.setText("Error: Coil traces overlap due to geometry.\nPlease adjust parameters.")
+        else:
+            self.coil_display.setPixmap(pixmap.scaled(self.coil_display.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
     
     def refresh_coil_layer_combo(self):
         # repopulate the combobox 
         self.current_layer.clear()
         for i in range(len(self.layer_array)):
             if self.layer_array[i] != 'Select':
-                text = self.layer_array[i]
+                if isinstance(self.layer_array[i], Coil):
+                    text = "Coil"
+                else:
+                    text = self.layer_array[i]
                 self.current_layer.addItem(f"Layer {i+1} — {text}")
         if self.layer_array:
             self.current_layer.setCurrentIndex(0)
@@ -106,23 +130,30 @@ class PCBWindow(QWidget):
         self.coil_width = QLineEdit()
         self.add_param("Coil Width (mm):", self.coil_width)
 
+        self.num_loops = QLineEdit()
+        self.add_param("Number of Loops:", self.num_loops)
+
         self.coil_current = QLineEdit()
         self.add_param("Coil current (A):", self.coil_current)
 
         self.vector_angle = QLineEdit()
         self.add_param("Vector Angle (°):", self.vector_angle)
 
-        self.num_loops = QLineEdit()
-        self.add_param("Number of Loops:", self.num_loops)
-
         self.min_spacing = QLineEdit()
         self.add_param("Trace Clearance (mil):", self.min_spacing)
 
-        self.trace_width = QLineEdit()
-        self.add_param("Trace Width (mil):", self.trace_width)
+        self.trace_width_min = QLineEdit()
+        self.add_param("Trace Width Minimum (mil):", self.trace_width_min)
+
+        self.trace_width_max = QLineEdit()
+        self.add_param("Trace Width Maximum (mil):", self.trace_width_max)
 
         self.edge_clearance = QLineEdit()
         self.add_param("Edge Clearance (mm):", self.edge_clearance)
+
+        self.coil_shape = QComboBox()
+        self.coil_shape.addItems(["Circular", "Rectangular"])
+        self.add_param("Coil Shape:", self.coil_shape)
 
         view.addWidget(self.current_layer)
         view.addLayout(self.param_columns)
@@ -141,10 +172,9 @@ class PCBWindow(QWidget):
 
         coil_display_widget = QWidget()
         coil_display_widget.setObjectName("coil_display")
-        self.coil_display = QLabel("Coil Display Area")
+        self.coil_display = QLabel()
         coil_display_layout = QVBoxLayout(coil_display_widget)
         coil_display_layout.addWidget(self.coil_display)
-        coil_display_layout.setAlignment(Qt.AlignTop)
 
         coil_view_widget = QWidget()
         coil_view = QVBoxLayout(coil_view_widget)
